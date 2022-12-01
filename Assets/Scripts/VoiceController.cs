@@ -19,7 +19,7 @@ using UnityEngine.iOS;
 using System.Collections;
 #endif
 
-public class HelloWorld : MonoBehaviour
+public class VoiceController : MonoBehaviour
 {
     private bool micPermissionGranted = false;
     public TextMeshProUGUI outputText;
@@ -38,6 +38,14 @@ public class HelloWorld : MonoBehaviour
     // Required to manifest microphone permission, cf.
     // https://docs.unity3d.com/Manual/android-manifest.html
     private Microphone mic;
+
+    public void OnStart() {
+        DebugHelper.Log("onStart");
+    }
+    
+    public void OnEnd() {
+        DebugHelper.Log("onEnd");
+    }
 
     private byte[] ConvertAudioClipDataToInt16ByteArray(float[] data)
     {
