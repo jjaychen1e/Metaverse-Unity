@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using Microsoft.CognitiveServices.Speech.Audio;
 using System.IO;
+using TMPro;
 #if PLATFORM_ANDROID
 using UnityEngine.Android;
 #endif
@@ -21,7 +22,7 @@ using System.Collections;
 public class HelloWorld : MonoBehaviour
 {
     private bool micPermissionGranted = false;
-    public Text outputText;
+    public TextMeshProUGUI outputText;
     public Button recoButton;
     SpeechRecognizer recognizer;
     SpeechConfig config;
@@ -34,11 +35,9 @@ public class HelloWorld : MonoBehaviour
     int lastSample = 0;
     AudioSource audioSource;
 
-#if PLATFORM_ANDROID || PLATFORM_IOS
     // Required to manifest microphone permission, cf.
     // https://docs.unity3d.com/Manual/android-manifest.html
     private Microphone mic;
-#endif
 
     private byte[] ConvertAudioClipDataToInt16ByteArray(float[] data)
     {
@@ -135,7 +134,7 @@ public class HelloWorld : MonoBehaviour
         else
         {
             // Continue with normal initialization, Text and Button objects are present.
-#if PLATFORM_ANDROID
+            
             // Request to use the microphone, cf.
             // https://docs.unity3d.com/Manual/android-RequestingPermissions.html
             message = "Waiting for mic permission";
@@ -143,15 +142,6 @@ public class HelloWorld : MonoBehaviour
             {
                 Permission.RequestUserPermission(Permission.Microphone);
             }
-#elif PLATFORM_IOS
-            if (!Application.HasUserAuthorization(UserAuthorization.Microphone))
-            {
-                Application.RequestUserAuthorization(UserAuthorization.Microphone);
-            }
-#else
-            micPermissionGranted = true;
-            message = "Click button to recognize speech";
-#endif
             config = SpeechConfig.FromSubscription("9b14d5328e294346b55489b2f25b04ed", "eastasia");
             config.SpeechRecognitionLanguage = "zh-CN";
             pushStream = AudioInputStream.CreatePushStream();
@@ -166,7 +156,8 @@ public class HelloWorld : MonoBehaviour
             {
                 Debug.Log("DeviceName: " + device);                
             }
-            audioSource = GameObject.Find("MyAudioSource").GetComponent<AudioSource>();
+            
+            audioSource = GetComponent<AudioSource>();
         }
     }
 
@@ -181,19 +172,11 @@ public class HelloWorld : MonoBehaviour
 
     void FixedUpdate()
     {
-#if PLATFORM_ANDROID
         if (!micPermissionGranted && Permission.HasUserAuthorizedPermission(Permission.Microphone))
         {
             micPermissionGranted = true;
             message = "Click button to recognize speech";
         }
-#elif PLATFORM_IOS
-        if (!micPermissionGranted && Application.HasUserAuthorization(UserAuthorization.Microphone))
-        {
-            micPermissionGranted = true;
-            message = "Click button to recognize speech";
-        }
-#endif
         lock (threadLocker)
         {
             if (recoButton != null)
@@ -208,7 +191,9 @@ public class HelloWorld : MonoBehaviour
 
         if (Microphone.IsRecording(Microphone.devices[0]) && recognitionStarted == true)
         {
-            GameObject.Find("MyButton").GetComponentInChildren<Text>().text = "Stop";
+            if (recoButton != null) {
+                recoButton.GetComponentInChildren<TextMeshProUGUI>().text = "Stop";
+            }
             int pos = Microphone.GetPosition(Microphone.devices[0]);
             int diff = pos - lastSample;
 
@@ -227,7 +212,9 @@ public class HelloWorld : MonoBehaviour
         }
         else if (!Microphone.IsRecording(Microphone.devices[0]) && recognitionStarted == false)
         {
-            GameObject.Find("MyButton").GetComponentInChildren<Text>().text = "Start";
+            if (recoButton != null) {
+                recoButton.GetComponentInChildren<TextMeshProUGUI>().text = "Start";
+            }
         }
     }
 }
