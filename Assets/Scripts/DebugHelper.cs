@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -10,7 +11,9 @@ public class DebugHelper : MonoBehaviour {
         get {
             if (_debugLog == null) {
                 lock (_lock) {
-                    _debugLog = GameObject.Find("Debug Log").GetComponent<TextMeshProUGUI>();
+                    if (_debugLog == null) {
+                        _debugLog = GameObject.Find("Debug Log").GetComponent<TextMeshProUGUI>();
+                    }
                 }
             }
 
@@ -18,16 +21,34 @@ public class DebugHelper : MonoBehaviour {
         }
     }
 
+    void OnEnable() {
+        Application.logMessageReceived += HandleLog;
+    }
+
+    void OnDisable() {
+        Application.logMessageReceived -= HandleLog;
+    }
+
+    void HandleLog(string logString, string stackTrace, LogType type) {
+        if (type == LogType.Error || type == LogType.Exception || type == LogType.Assert) {
+            DebugHelper.Log(logString + "\n" + stackTrace);
+        }
+    }
+
     public static void Log(string message) {
         if (DebugLog == null) {
             return;
         }
-        
+
         var lines = DebugLog.text.Split('\n');
-        if (lines.Length >= 10) {
+        if (lines.Length >= 5) {
             DebugLog.text = "";
         }
 
         DebugLog.text += message + "\n";
+    }
+
+    private void Update() {
+        DebugLog.ForceMeshUpdate();
     }
 }
